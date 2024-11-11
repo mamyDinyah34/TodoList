@@ -1,134 +1,174 @@
 import { useEffect, useState } from "react";
 import Layout from "../components/Layout";
-import { tasksList, updateTaskStatus, deleteTask, getTasksByStatus, sortTasksAsc, sortTasksDesc } from "../service/axiosService";
+import { tasksList, updateTaskStatus, deleteTask, getTasksByStatus, sortTasksAsc, sortTasksDesc, countTasks, countCompletedTasks, countNotCompletedTasks, countInProgressTasks, } from "../service/axiosService";
+import { useNavigate } from 'react-router-dom';
 
-interface Task {
-  id: string;
-  name: string;
-  description: string;
-  status: string;
-}
-
-export default function Page() {
-  const [tasks, setTasks] = useState<Task[]>([]);
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState<boolean>(false);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
-
-  const fetchTasks = async () => {
-    setLoading(true);
-    try {
-      const response = await tasksList();
-      setTasks(response.data);
-      setError(null);
-    } catch (err) {
-      setError("Error fetching tasks.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchTasks();
-  }, []);
-
-  const handleMarkAsInProgress = async (id:string) => {
-    try {
-      await updateTaskStatus(id, "progress");
-      setSuccessMessage("Task marked as in progress.");
+  interface Task {
+    id: string;
+    name: string;
+    description: string;
+    status: string;
+  }
+  
+  export default function Page() {
+    const [tasks, setTasks] = useState<Task[]>([]);
+    const [error, setError] = useState<string | null>(null);
+    const [loading, setLoading] = useState<boolean>(false);
+    const [successMessage, setSuccessMessage] = useState<string | null>(null);
+    const [totalTasks, setTotalTasks] = useState<number>(0);
+    const [completedTasks, setCompletedTasks] = useState<number>(0);
+    const [notCompletedTasks, setNotCompletedTasks] = useState<number>(0);
+    const [inProgressTasks, setInProgressTasks] = useState<number>(0);
+  
+    const fetchTasks = async () => {
+      setLoading(true);
+      try {
+        const response = await tasksList();
+        setTasks(response.data);
+        setError(null);
+      } catch (err) {
+        setError("Error fetching tasks.");
+      } finally {
+        setLoading(false);
+      }
+    };
+  
+    const fetchCounts = async () => {
+      try {
+        const [total, completed, notCompleted, inProgress] = await Promise.all([
+          countTasks(),
+          countCompletedTasks(),
+          countNotCompletedTasks(),
+          countInProgressTasks(),
+        ]);
+  
+        setTotalTasks(total.data);
+        setCompletedTasks(completed.data);
+        setNotCompletedTasks(notCompleted.data);
+        setInProgressTasks(inProgress.data);
+      } catch {
+        setError("Error fetching task counts.");
+      }
+    };
+  
+    useEffect(() => {
       fetchTasks();
-    } catch {
-      setError("Failed to update task status.");
-    }
-  };
-
-  const handleMarkAsCompleted = async (id:string) => {
-    try {
-      await updateTaskStatus(id, "completed");
-      setSuccessMessage("Task marked as completed.");
-      fetchTasks();
-    } catch {
-      setError("Failed to mark task as completed.");
-    }
-  };
-
-  const handleDelete = async (id:string) => {
-    try {
-      await deleteTask(id);
-      setSuccessMessage("Task deleted.");
-      fetchTasks();
-    } catch {
-      setError("Failed to delete task.");
-    }
-  };
-
-  const filterTasksByStatus = async (status: string) => {
-    setLoading(true);
-    try {
-      const response = await getTasksByStatus(status);
-      setTasks(response.data);
-      setError(null);
-    } catch {
-      setError("Error filtering tasks.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const sortTasks = async (order: 'asc' | 'desc') => {
-    setLoading(true);
-    try {
-      const response = order === 'asc' ? await sortTasksAsc() : await sortTasksDesc();
-      setTasks(response.data);
-      setError(null);
-    } catch {
-      setError("Error sorting tasks.");
-    } finally {
-      setLoading(false);
-    }
+      fetchCounts();
+    }, []);
+  
+    const handleMarkAsInProgress = async (id: string) => {
+      try {
+        await updateTaskStatus(id, "progress");
+        setSuccessMessage("Task marked as in progress.");
+        fetchTasks();
+        fetchCounts();
+      } catch {
+        setError("Failed to update task status.");
+      }
+    };
+  
+    const handleMarkAsCompleted = async (id: string) => {
+      try {
+        await updateTaskStatus(id, "completed");
+        setSuccessMessage("Task marked as completed.");
+        fetchTasks();
+        fetchCounts();
+      } catch {
+        {/*setError("Failed to mark task as completed.");*/}
+        fetchTasks();
+        fetchCounts();
+      }
+    };
+  
+    const handleDelete = (id: string) => {
+      const isConfirmed = window.confirm('Are you sure you want to delete this task?');
+      if (isConfirmed) {
+        deleteTask(id)
+          .then(() => {
+            alert('Task deleted successfully');
+            setTasks(tasks.filter((task) => task.id !== id));
+            fetchCounts();
+          })
+          .catch(() => {
+            alert('Failed to delete task');
+          });
+      }
+    };
+  
+    const navigate = useNavigate();
+  
+    const handleUpdate = (id: string) => {
+      navigate(`/update/${id}`);
+    };
+  
+    const filterTasksByStatus = async (status: string) => {
+      setLoading(true);
+      try {
+        const response = await getTasksByStatus(status);
+        setTasks(response.data);
+        setError(null);
+      } catch {
+        setError("Error filtering tasks.");
+      } finally {
+        setLoading(false);
+      }
+    };
+  
+    const sortTasks = async (order: 'asc' | 'desc') => {
+      setLoading(true);
+      try {
+        const response = order === 'asc' ? await sortTasksAsc() : await sortTasksDesc();
+        setTasks(response.data);
+        setError(null);
+      } catch {
+        setError("Error sorting tasks.");
+      } finally {
+        setLoading(false);
+      }
   };
 
   return (
     <Layout>
-      <div className="m-4">
-        <h1 className="text-center text-5xl font-semibold mb-4">TASK LIST</h1>
-        {successMessage && <div className="text-green-600">{successMessage}</div>}
-        {error && <div className="text-red-600">{error}</div>}
+      <div className="m-10">
+        <h1 className="text-center text-5xl font-semibold mb-4 dark:text-white">TASK LIST</h1>
         <div className="mb-4">
-          <div className="flex">
-            <button 
-              onClick={() => filterTasksByStatus("completed")} 
-              className="px-4 py-2 bg-green-600 text-white hover:bg-green-700"
-            >
-              Completed
+          <div className="flex space-x-2">
+            <button onClick={() => fetchTasks()} className="rounded-lg relative px-4 py-2 bg-blue-600 text-white hover:bg-blue-700">
+              All Tasks
+              <span className="absolute top-0 right-0 transform translate-x-1/2 -translate-y-1/2 bg-blue-600 text-white rounded-full px-3 py-1 text-sm font-semibold">
+                {totalTasks}
+              </span>
             </button>
-            <button 
-              onClick={() => filterTasksByStatus("not completed")} 
-              className="px-4 py-2 bg-red-600 text-white hover:bg-red-700"
-            >
+            <button onClick={() => filterTasksByStatus("not completed")} className="rounded-lg relative px-4 py-2 bg-red-600 text-white hover:bg-red-700">
               Not Completed
+              <span className="absolute top-0 right-0 transform translate-x-1/2 -translate-y-1/2 bg-red-600 text-white rounded-full px-3 py-1 text-sm font-semibold">
+                {notCompletedTasks}
+              </span>
             </button>
-            <button 
-              onClick={() => filterTasksByStatus("in progress")} 
-              className="px-4 py-2 bg-yellow-600 text-white hover:bg-yellow-700"
-            >
+            <button onClick={() => filterTasksByStatus("in progress")} className="rounded-lg relative px-4 py-2 bg-yellow-600 text-white hover:bg-yellow-700">
               In Progress
+              <span className="absolute top-0 right-0 transform translate-x-1/2 -translate-y-1/2 bg-yellow-600 text-white rounded-full px-3 py-1 text-sm font-semibold">
+                {inProgressTasks}
+              </span>
+            </button>
+            <button onClick={() => filterTasksByStatus("completed")} className="rounded-lg relative px-4 py-2 bg-green-600 text-white hover:bg-green-700">
+              Completed
+              <span className="absolute top-0 right-0 transform translate-x-1/2 -translate-y-1/2 bg-green-600 text-white rounded-full px-3 py-1 text-sm font-semibold">
+                {completedTasks}
+              </span>
             </button>
           </div>
-
-          {/* Section de tri */}
           <div className="mt-4">
             <label className="text-black dark:text-white mr-2">Sort by Name:</label>
-            <select 
-              onChange={(event) => sortTasks(event.target.value)}
-              className="px-4 py-2 bg-blue-600 text-white hover:bg-blue-700"
-            >
+            <select onChange={(event) => sortTasks(event.target.value)} className="px-4 py-2 bg-blue-600 text-white hover:bg-blue-700">
               <option value="asc">Ascending</option>
               <option value="desc">Descending</option>
             </select>
           </div>
         </div>
 
+        {successMessage && <div className="text-green-600">{successMessage}</div>}
+        {error && <div className="text-red-600">{error}</div>}
         {loading ? (
           <p>Loading tasks...</p>
         ) : (
@@ -156,11 +196,14 @@ export default function Page() {
                       <td className="border-r-2 border-blue-500 dark:border-white px-4 py-2 text-black dark:text-white">{task.description}</td>
                       <td className="border-r-2 border-blue-500 dark:border-white px-4 py-2 text-black dark:text-white">{task.status}</td>
                       <td className="border-r-2 border-blue-500 dark:border-white px-4 py-2">
-                        <button onClick={() => handleMarkAsCompleted(task.id)} disabled={task.status === "not completed"} className={`px-4 py-2 ${task.status === "not completed" ? "bg-gray-300" : "bg-green-500 text-white"} rounded mr-2`}>
-                          Complete
+                        <button onClick={() => handleMarkAsInProgress(task.id)} disabled={task.status === "in progress" || task.status === "completed"} className={`px-4 py-2 ${task.status === "in progress" || task.status === "completed" ? "bg-gray-300 cursor-not-allowed" : "bg-blue-500 text-white"} rounded mr-5`}>
+                          Mark In Progress
                         </button>
-                        <button onClick={() => handleMarkAsInProgress(task.id)} disabled={task.status === "completed"} className={`px-4 py-2 ${task.status === "completed" ? "bg-gray-300 cursor-not-allowed" : "bg-blue-500 text-white"} rounded mr-2`}>
-                          In Progress
+                        <button onClick={() => handleMarkAsCompleted(task.id)} disabled={task.status === "not completed" || task.status === "completed"} className={`px-4 py-2 ${task.status === "not completed" || task.status === "completed" ? "bg-gray-300" : "bg-green-500 text-white"} rounded mr-5`}>
+                          Mark Complete
+                        </button>
+                        <button onClick={() => handleUpdate(task.id)} className="px-4 py-2 bg-yellow-500 text-white rounded mr-5">
+                          Update
                         </button>
                         <button onClick={() => handleDelete(task.id)} className="px-4 py-2 bg-red-500 text-white rounded">
                           Delete

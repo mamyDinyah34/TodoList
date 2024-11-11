@@ -1,11 +1,13 @@
 import { useState } from "react";
 import Layout from "../components/Layout";
 import { addTask } from "../service/axiosService";
+import { useNavigate } from 'react-router-dom';
 
 export default function Page() {
   const [taskName, setTaskName] = useState("");
   const [taskDescription, setTaskDescription] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const navigate = useNavigate();
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -24,9 +26,10 @@ export default function Page() {
     try {
       await addTask(newTask);
       alert("Task added successfully!");
-      setTaskName("");
+      navigate('/');
+      /*setTaskName("");
       setTaskDescription("");
-      setError(null);
+      setError(null);*/
     } catch {
       setError("There was an error adding the task. Please try again.");
     }
@@ -35,11 +38,11 @@ export default function Page() {
   return (
     <Layout>
       <div className="relative overflow-x-auto">
-        <p className="text-center text-gray-950 text-xl font-semibold mb-4 dark:text-white">
-          Add Task Page
-        </p>
+        <h1 className="text-center text-5xl font-semibold mb-4 dark:text-white">
+          Add Task
+        </h1>
         <div className="flex justify-center">
-          <div className="w-3/4 bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
+          <div className="w-3/4 bg-white dark:bg-gray-700 p-6 rounded-lg shadow-md">
             <form onSubmit={handleSubmit}>
 
               <div className="relative z-0 w-full mb-5 group">
@@ -59,7 +62,7 @@ export default function Page() {
               {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
 
               <button type="submit" className="w-full sm:w-auto px-5 py-2.5 text-center text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
-                Submit
+                Save
               </button>
             </form>
           </div>
