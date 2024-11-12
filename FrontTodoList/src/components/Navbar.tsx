@@ -1,6 +1,6 @@
-import { useState } from 'react';
-import { DarkThemeToggle } from 'flowbite-react';
-import { Link } from 'react-router-dom'; 
+import { useState } from "react";
+import { DarkThemeToggle } from "flowbite-react";
+import { Link } from "react-router-dom"; 
 
 export default function Navbar() {
   const [menuOpn, setmenuOpn] = useState(false);
@@ -10,7 +10,7 @@ export default function Navbar() {
   }
 
   return (
-    <nav className="border-gray-200 bg-gray-400 dark:bg-gray-900">
+    <nav className="fixed top-0 left-0 w-full z-50 border-gray-200 bg-gray-400 dark:bg-gray-900">
       <div className="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto p-4">
         <Link to="/" className="flex items-center space-x-3 rtl:space-x-reverse">
           <img src="/logo.png" className="h-8" alt="Logo" />

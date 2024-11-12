@@ -1,5 +1,4 @@
 import axios from "axios";
-import { ObjectId } from "bson";
 
 const REST_API_BASE_URL = 'http://localhost:8082/api/tasks';
 
@@ -9,10 +8,10 @@ export const tasksList = () =>
 export const addTask = (newTask: { name: string; description: string; status: string }) => 
   axios.post(REST_API_BASE_URL, newTask);
 
-export const updateTaskStatus = (taskId: string | ObjectId, status: string) => 
+export const updateTaskStatus = (taskId: string, status: string) => 
   axios.put(`${REST_API_BASE_URL}/${taskId}/${status}`);
 
-export const deleteTask = (taskId: string | ObjectId) => 
+export const deleteTask = (taskId: string) => 
   axios.delete(`${REST_API_BASE_URL}/${taskId}`);
 
 export const getTasksByStatus = (status: string) => 
@@ -28,7 +27,7 @@ export const getTaskById = (taskId: string) =>
   axios.get(`${REST_API_BASE_URL}/${taskId}`);
 
 
-export const updateTask = (taskId: string | ObjectId, updatedTask: { name: string; description: string }) => 
+export const updateTask = (taskId: string, updatedTask: { name: string; description: string }) => 
   axios.put(`${REST_API_BASE_URL}/${taskId}`, updatedTask);
 
 export const countTasks = () => 

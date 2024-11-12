@@ -1,22 +1,16 @@
 import { useState } from "react";
 import Layout from "../components/Layout";
 import { addTask } from "../service/axiosService";
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from "react-router-dom";
 
 export default function Page() {
   const [taskName, setTaskName] = useState("");
   const [taskDescription, setTaskDescription] = useState("");
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState("");
   const navigate = useNavigate();
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
-
-    if (!taskName || !taskDescription) {
-      setError("Both Task Name and Task Description are required.");
-      return;
-    }
-
     const newTask = {
       name: taskName,
       description: taskDescription,
@@ -28,8 +22,7 @@ export default function Page() {
       alert("Task added successfully!");
       navigate('/');
       /*setTaskName("");
-      setTaskDescription("");
-      setError(null);*/
+      setTaskDescription("");*/
     } catch {
       setError("There was an error adding the task. Please try again.");
     }

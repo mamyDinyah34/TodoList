@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import Layout from "../components/Layout";
 import { tasksList, updateTaskStatus, deleteTask, getTasksByStatus, sortTasksAsc, sortTasksDesc, countTasks, countCompletedTasks, countNotCompletedTasks, countInProgressTasks, } from "../service/axiosService";
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from "react-router-dom";
+
 
   interface Task {
     id: string;
@@ -12,9 +13,9 @@ import { useNavigate } from 'react-router-dom';
   
   export default function Page() {
     const [tasks, setTasks] = useState<Task[]>([]);
-    const [error, setError] = useState<string | null>(null);
     const [loading, setLoading] = useState<boolean>(false);
-    const [successMessage, setSuccessMessage] = useState<string | null>(null);
+    const [error, setError] = useState("");
+    const [successMessage, setSuccessMessage] = useState("");
     const [totalTasks, setTotalTasks] = useState<number>(0);
     const [completedTasks, setCompletedTasks] = useState<number>(0);
     const [notCompletedTasks, setNotCompletedTasks] = useState<number>(0);
@@ -25,8 +26,7 @@ import { useNavigate } from 'react-router-dom';
       try {
         const response = await tasksList();
         setTasks(response.data);
-        setError(null);
-      } catch (err) {
+      } catch (error) {
         setError("Error fetching tasks.");
       } finally {
         setLoading(false);
@@ -81,11 +81,11 @@ import { useNavigate } from 'react-router-dom';
     };
   
     const handleDelete = (id: string) => {
-      const isConfirmed = window.confirm('Are you sure you want to delete this task?');
+      const isConfirmed = window.confirm("Are you sure you want to delete this task?");
       if (isConfirmed) {
         deleteTask(id)
           .then(() => {
-            alert('Task deleted successfully');
+            alert("Task deleted successfully");
             setTasks(tasks.filter((task) => task.id !== id));
             fetchCounts();
           })
@@ -106,7 +106,6 @@ import { useNavigate } from 'react-router-dom';
       try {
         const response = await getTasksByStatus(status);
         setTasks(response.data);
-        setError(null);
       } catch {
         setError("Error filtering tasks.");
       } finally {
@@ -114,12 +113,11 @@ import { useNavigate } from 'react-router-dom';
       }
     };
   
-    const sortTasks = async (order: 'asc' | 'desc') => {
+    const sortTasks = async (order: "asc" | "desc") => {
       setLoading(true);
       try {
-        const response = order === 'asc' ? await sortTasksAsc() : await sortTasksDesc();
+        const response = order === "asc" ? await sortTasksAsc() : await sortTasksDesc();
         setTasks(response.data);
-        setError(null);
       } catch {
         setError("Error sorting tasks.");
       } finally {
@@ -129,7 +127,7 @@ import { useNavigate } from 'react-router-dom';
 
   return (
     <Layout>
-      <div className="m-10">
+      <div className="mr-10 ml-10 mb-10">
         <h1 className="text-center text-5xl font-semibold mb-4 dark:text-white">TASK LIST</h1>
         <div className="mb-4">
           <div className="flex space-x-2">
@@ -196,18 +194,32 @@ import { useNavigate } from 'react-router-dom';
                       <td className="border-r-2 border-blue-500 dark:border-white px-4 py-2 text-black dark:text-white">{task.description}</td>
                       <td className="border-r-2 border-blue-500 dark:border-white px-4 py-2 text-black dark:text-white">{task.status}</td>
                       <td className="border-r-2 border-blue-500 dark:border-white px-4 py-2">
-                        <button onClick={() => handleMarkAsInProgress(task.id)} disabled={task.status === "in progress" || task.status === "completed"} className={`px-4 py-2 ${task.status === "in progress" || task.status === "completed" ? "bg-gray-300 cursor-not-allowed" : "bg-blue-500 text-white"} rounded mr-5`}>
-                          Mark In Progress
-                        </button>
-                        <button onClick={() => handleMarkAsCompleted(task.id)} disabled={task.status === "not completed" || task.status === "completed"} className={`px-4 py-2 ${task.status === "not completed" || task.status === "completed" ? "bg-gray-300" : "bg-green-500 text-white"} rounded mr-5`}>
-                          Mark Complete
-                        </button>
-                        <button onClick={() => handleUpdate(task.id)} className="px-4 py-2 bg-yellow-500 text-white rounded mr-5">
-                          Update
-                        </button>
-                        <button onClick={() => handleDelete(task.id)} className="px-4 py-2 bg-red-500 text-white rounded">
-                          Delete
-                        </button>
+                        <div className="flex flex-col space-y-2">
+                          <div className="flex space-x-2">
+                            <button
+                              onClick={() => handleMarkAsInProgress(task.id)}
+                              disabled={task.status === "in progress" || task.status === "completed"}
+                              className={`px-4 py-2 ${task.status === "in progress" || task.status === "completed" ? "bg-gray-300 cursor-not-allowed" : "bg-blue-500 text-white"} rounded`}
+                            >
+                              Mark In Progress
+                            </button>
+                            <button
+                              onClick={() => handleMarkAsCompleted(task.id)}
+                              disabled={task.status === "not completed" || task.status === "completed"}
+                              className={`px-4 py-2 ${task.status === "not completed" || task.status === "completed" ? "bg-gray-300" : "bg-green-500 text-white"} rounded`}
+                            >
+                              Mark Complete
+                            </button>
+                          </div>
+                          <div className="flex space-x-2">
+                            <button onClick={() => handleUpdate(task.id)} className="px-4 py-2 bg-yellow-500 text-white rounded">
+                              Update
+                            </button>
+                            <button onClick={() => handleDelete(task.id)} className="px-4 py-2 bg-red-500 text-white rounded">
+                              Delete
+                            </button>
+                          </div>
+                        </div>
                       </td>
                     </tr>
                   ))

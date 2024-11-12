@@ -1,8 +1,8 @@
-import { Route, Routes } from 'react-router-dom';
-import './App.css';
-import AddTaskPage from './pages/add-task';
-import TaskListPage from './pages/tasks-list';
-import UpdateTaskPage from './pages/update-task';
+import { Route, Routes } from "react-router-dom";
+import "./App.css";
+import AddTaskPage from "./pages/add-task";
+import TaskListPage from "./pages/tasks-list";
+import UpdateTaskPage from "./pages/update-task";
 
 function App() {
 
